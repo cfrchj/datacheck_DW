@@ -28,16 +28,16 @@ object SparkDatacheckDW extends Serializable {
   case class DNSlog1(DD_NM_VALID: String, DD_TIME_COLLECT_MIN: String, IP_TARGET_FIRST: String, USER_TYPE: String, PROVINCE: String)
   //key(五分钟划分、时间（小时）、域名、泛域名、域名级别、目的IP、用户类型、上传省份代码)
   case class DNSlog2(KEY: String, COUNT: Long, DAY: String)
-
   /*取泛域名以及域名级别、结合成单一字符串*/
   def KeyMergeResult(combine: (DNSlog1, Int)): DNSlog2 = {
     val Day = combine._1.DD_TIME_COLLECT_MIN.substring(3, 11)
     //取泛域名以及域名级别
     val domainStr = combine._1.DD_NM_VALID
-    var mainDomain = InternalProcess.getDomainInfo(domainStr, "domain")
-    if (mainDomain == "-1") mainDomain = domainStr
+    //var mainDomain = InternalProcess.getDomainInfo(domainStr, "domain")
+    //if (mainDomain == "-1") mainDomain = domainStr
+    var mainDomain = "NULL"
     //val domainLevel = InternalProcess.getDomainInfo(domainStr, "level")
-    val domainLevel = "NULL"
+    val domainLevel = "3"
     //增加五分钟标志(Min)     
     val resultKey = combine._1.DD_TIME_COLLECT_MIN + "|" + combine._1.DD_NM_VALID + "|" + mainDomain + "|" + domainLevel + "|" + combine._1.IP_TARGET_FIRST + "|" + combine._1.USER_TYPE + "|" + combine._1.PROVINCE
     DNSlog2(resultKey, combine._2, Day)
@@ -120,9 +120,6 @@ object SparkDatacheckDW extends Serializable {
       "serializer.class" -> "kafka.serializer.StringEncoder",
       "enable.auto.commit" -> enableAutoCommit,
       "auto.offset.reset" -> autoOffsetReset)
-
-    // val srcData = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder, (String, String)](
-    //   ssc, kafkaParams, offsets, messageHandler) //kafka存储原始日志
       
     val srcData = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](
        ssc, kafkaParams, kafkaTopicSet)
@@ -131,8 +128,7 @@ object SparkDatacheckDW extends Serializable {
 
       if (!rdd.isEmpty()) {
         val currentTime = dateFormat.format(System.currentTimeMillis())
-        
-        // val rddNew = rdd.repartition(srcRddRepartitionNums)
+
         /*数据检核*/
         val pairs = rdd.map(line => (line._2, line._2.split(srcSplitPattern)))
         //val pairs = rdd.map(line => (line, line.split(srcSplitPattern)))
@@ -143,20 +139,9 @@ object SparkDatacheckDW extends Serializable {
             formula2.matcher(pair._2(2)).matches &&
             formula3.matcher(pair._2(3)).matches) 1 else 0))
 
-        // checkResult.persist()
-
-        /*生成合格数据并保存*/
+        /*生成合格数据*/
         val correctData = checkResult.filter { case (pair, flag) => flag == 1 }.map(x => x._1)
-        // correctData.persist()
-        // val correctDataColalesce = correctData.coalesce(checkCorrectCoalesceNums, true)
-        // correctDataColalesce.saveAsTextFile(correctResultPath + "/" + currentTime)
-        // correctData.count()
 
-        /*生成垃圾数据并保存*/
-        // val errorData = checkResult.filter { case (pair, flag) => flag == 0 }.map(x => x._1._1)
-        // errorData.coalesce(checkErrorCoalesceNums, true).saveAsTextFile(errorResultPath + "/" + currentTime)
-        // errorData.count()
-        // checkResult.unpersist()
         /*轻度汇总*/
         val DNSLOG_PARSE = correctData.map { str =>
           //有效域名判断、省份代码处理、目的IP处理
@@ -184,8 +169,8 @@ object SparkDatacheckDW extends Serializable {
             }
           }
           val afterUserTpyeTime = dateFormat.format(System.currentTimeMillis())
-          println("++++++++++++++++" + beforeUserTpyeTime + "++++++++++++++++")
-          println(("++++++++++++++++" + afterUserTpyeTime + "++++++++++++++++"))
+          //println("++++++++++++++++" + beforeUserTpyeTime + "++++++++++++++++")
+          //println(("++++++++++++++++" + afterUserTpyeTime + "++++++++++++++++"))
           //域名、时间、目的IP、用户类型、上传省份
           DNSlog1(validDomain, timeMin, IPTarget, userType, provinceLongID)
           //DNSlog1(p(1), p(2), p(0), p(0), p(0))
