@@ -5,21 +5,36 @@ import java.util.regex.Pattern
 
 import scala.util.Try
 
-import org.apache.hadoop.hbase.HBaseConfiguration
-import org.apache.hadoop.hbase.client.Connection
-import org.apache.hadoop.hbase.client.ConnectionFactory
-
 object InternalProcess extends Serializable {
+  def  searchBinary(arr: Array[(Long, Long, String)], low: Int, high: Int, ipLong: Long): Int = {
+    if (low > high) {
+      return -1;
+    } else {
+      var mid = (low + high) / 2;
+      if (arr(mid)._1 <= ipLong && ipLong <= arr(mid)._2) {
+        return mid;
+      } else if (ipLong < arr(mid)._1) {
+        return searchBinary(arr, low, mid - 1, ipLong);
+      } else {
+        return searchBinary(arr, mid + 1, high, ipLong);
+      }
+    }
 
-  /*获取HBASE连接*/
-  def getHbaseConn(rootDir: String, clientPort: String, quorum: String): Connection = {
-    val conf = HBaseConfiguration.create()
-    conf.set("hbase.rootdir", rootDir)
-    conf.set("hbase.zookeeper.property.clientPort", clientPort) //集群zookeeper端口
-    conf.set("hbase.zookeeper.quorum", quorum) //zookeeper节点
-    val connection = ConnectionFactory.createConnection(conf) //获取hbase连接
-    connection
   }
+
+    def getUserType(str : String, broadCast : Array[(Long, Long, String)]) : String = {
+      val ipLong = IPv4ToLong(str)
+      var index : Int = -1
+      var userType : String = "-1"
+      index = searchBinary(broadCast, 0, broadCast.length - 1, ipLong)
+      if(index != -1){
+        broadCast(index)._3
+      }
+      else
+        {"-1"}
+  }
+
+
 
   def IPv4ToLong(dottedIP: String): Long = {
     var num: Long = 0

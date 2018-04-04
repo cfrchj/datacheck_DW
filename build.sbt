@@ -4,7 +4,7 @@ assemblySettings
 
 name := "datacheck_DW"
 
-version := "0.0.8withfoldwithoutmaindomain"
+version := "0.1.0"
 
 scalaVersion := "2.10.6"
 
