@@ -14,11 +14,11 @@ libraryDependencies += "org.apache.spark" % "spark-core_2.10" % "1.6.0" %  "prov
 
 libraryDependencies += "org.apache.spark" % "spark-streaming_2.10" % "1.6.0" %  "provided"
 
-libraryDependencies += "org.apache.hbase" % "hbase-client" % "1.0.0-cdh5.4.2"  %  "provided"
+libraryDependencies += "org.apache.hbase" % "hbase-client" % "1.2.0-cdh5.10.2"  %  "provided"
 
-libraryDependencies += "org.apache.hbase" % "hbase-common" % "1.0.0-cdh5.4.2"  %  "provided"
+libraryDependencies += "org.apache.hbase" % "hbase-common" % "1.2.0-cdh5.10.2"  %  "provided"
 
-libraryDependencies += "org.apache.hbase" % "hbase-server" % "1.0.0-cdh5.4.2"  %  "provided"
+libraryDependencies += "org.apache.hbase" % "hbase-server" % "1.2.0-cdh5.10.2"  %  "provided"
 
 libraryDependencies += "org.apache.spark" %% "spark-sql" % "1.6.0" % "provided"
 
